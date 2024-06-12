@@ -1,3 +1,4 @@
+# Reusable Workflow that deploys environments
 name: Deploy Environment
 on:
   workflow_call:
@@ -260,14 +261,15 @@ jobs:
       ( needs.deploy_swf.result == 'success' || needs.deploy_swf.result == 'skipped' ) &&
       ( needs.check_changes.outputs.base_bundle_changes == 'true' )
     environment: ${{ inputs.environment }}
-    runs-on:
-      group: ${{ needs.build_and_publish_runner_image.outputs.runner_group }}
+    runs-on: ubuntu-latest
+#      group: ${{ needs.build_and_publish_runner_image.outputs.runner_group }}
     container:
       image: 'ghcr.io/defenseunicorns/arc/images/ubuntu-22_04:latest'
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Configure AWS Credentials
+        shell: bash
         run: |
           echo "[*] Configure AWS Credentials"
 #        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
@@ -317,9 +319,9 @@ jobs:
 #          UDS_GOOGLE_IDP_CLIENTSECRET: ${{ secrets.GOOGLE_IDP_CLIENTSECRET }}
 #          ENVIRONMENT: ${{ inputs.environment }}
 
-      - name: Debug Output
-        if: ${{ always() }}
-        uses: ./.github/actions/cluster-debug
+#      - name: Debug Output
+#        if: ${{ always() }}
+#        uses: ./.github/actions/cluster-debug
 
       - name: Save logs
         if: always()
@@ -338,14 +340,15 @@ jobs:
       ( needs.build_and_publish_runner_image.result == 'success' || needs.build_and_publish_runner_image.result == 'skipped' ) &&
       ( needs.check_changes.outputs.swf_bundle_changes == 'true' )
     environment: ${{ inputs.environment }}
-    runs-on:
-      group: ${{ needs.build_and_publish_runner_image.outputs.runner_group }}
+    runs-on: ubuntu-latest
+#      group: ${{ needs.build_and_publish_runner_image.outputs.runner_group }}
     container:
       image: 'ghcr.io/defenseunicorns/arc/images/ubuntu-22_04:latest'
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Configure AWS Credentials
+        shell: bash
         run: |
           echo "[*] Configure AWS Credentials"
 #        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
@@ -386,9 +389,9 @@ jobs:
 #          UDS_DOMAIN: ${{ vars.UDS_DOMAIN }}
 #          ENVIRONMENT: ${{ inputs.environment }}
 
-      - name: Debug Output
-        if: ${{ always() }}
-        uses: ./.github/actions/cluster-debug
+#      - name: Debug Output
+#        if: ${{ always() }}
+#        uses: ./.github/actions/cluster-debug
 
       - name: Save logs
         if: always()
@@ -400,22 +403,24 @@ jobs:
     needs:
       - check_changes
       - build_and_publish_runner_image
+      - deploy_base_bundle
       - deploy_swf_bundle
     if: |
       ( !cancelled() ) &&
       ( needs.build_and_publish_runner_image.result == 'success' || needs.build_and_publish_runner_image.result == 'skipped' ) &&
+      ( needs.deploy_base_bundle.result == 'success' || needs.deploy_base_bundle.result == 'skipped') &&
       ( needs.deploy_swf_bundle.result == 'success' || needs.deploy_swf_bundle.result == 'skipped') &&
       ( needs.check_changes.outputs.lfai_bundle_changes == 'true' )
     environment: ${{ inputs.environment }}
-    runs-on:
-      group: ${{ needs.build_and_publish_runner_image.outputs.runner_group }}
+    runs-on: ubuntu-latest
+#      group: ${{ needs.build_and_publish_runner_image.outputs.runner_group }}
     container:
       image: 'ghcr.io/defenseunicorns/arc/images/ubuntu-22_04:latest'
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Configure AWS Credentials
-#        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+        shell: bash
         run: |
           echo "[*] Configure AWS Credentials"
 #        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
@@ -458,9 +463,9 @@ jobs:
 #          UDS_HOSTED_DOMAIN: ${{ vars.UDS_DOMAIN }}
 #          ENVIRONMENT: ${{ inputs.environment }}
 
-      - name: Debug Output
-        if: ${{ always() }}
-        uses: ./.github/actions/cluster-debug
+#      - name: Debug Output
+#        if: ${{ always() }}
+#        uses: ./.github/actions/cluster-debug
 
       - name: Save logs
         if: always()
